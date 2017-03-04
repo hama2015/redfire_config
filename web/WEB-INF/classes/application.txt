@@ -1,0 +1,49 @@
+#application.开始的属性 去掉application.设置到 appliction对象
+#system. 开始的属性 去掉system.设置到 system.properties 
+#mkdir. 开始的属性 将依据value 创建目录
+#${WEB_FILEPATH} 将被替换为系统绝对路径
+application.page_hidden=hidden
+application.power=true
+#jdbc  spring\applicationContext-datasource.xml 和主键生成器使用 
+
+db_driver=oracle.jdbc.driver.OracleDriver
+#db_url=jdbc\:oracle\:thin\:@192.168.1.34\:1521\:orcl
+db_url=jdbc\:oracle\:thin\:@127.0.0.1\:1521\:orcl
+db_testsql=select 1 from dual
+jdbc_dialect=oracle
+
+#db_driver=com.mysql.jdbc.Driver
+#db_url=jdbc:mysql://127.0.0.1:3306/test
+#db_testsql=select 1
+#jdbc_dialect=mysql
+
+
+#db_driver=com.microsoft.sqlserver.jdbc.SQLServerDriver
+#db_url=jdbc:sqlserver://192.168.1.34;instanceName=MSSQLSERVER2;databaseName=exam_2_0
+#db_testsql=select 1
+#jdbc_dialect=sqlserver
+
+#db_driver=com.ibm.db2.jcc.DB2Driver
+#db_url=jdbc:db2://127.0.0.1:50000/exam
+#db_testsql=select 1 from dual
+#jdbc_dialect=db2
+db_user=REDFIRE
+db_pwd=REDFIRE
+#加密的数据密码
+#db_enpwd=J+V6DCvkovY=
+#数据库jndi  tomcat java:comp/env/jdbc/peak
+db_jndi=jdbc/peak
+#表示是否是主机
+masterIP=127.0.0.1
+#不允许上传的文件
+fileBlankList=.jsp,.jspx,.class,.html
+#文件上传的根目录 必须相对系统目录
+fileUploadBaseDir=${WEB_FILEPATH}web/resource/
+#文件下载的根目录 必须相对系统目录
+fileDownBaseDir=${WEB_FILEPATH}web/resource/download
+#应用是否支持https协议 移动端ios扫描二维码下载使用
+https_usable=false;
+xss_checked_keys=SCRIPT;IFRAME;JAVASCRIPT;ONERROR;ONCLICK;ONMOVE;ALERT;(
+fileWhiteList=zip,jpg,doc,docx,pdf,xls,docx,xlsx,ppt,pptx
+#需要检测提交参数的最小长度 安全检测配置为10 默认为20 正式环境配置为 25
+xss_checked_min_length=10
