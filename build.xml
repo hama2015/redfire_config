@@ -1,0 +1,318 @@
+﻿<!--
+  All rights reserved.
+  author: 赵国栋
+-->
+<project name="peak" basedir="." default="build-all">
+	<tstamp>
+	      <format property="time" pattern="yyyy-MM-dd hh:mm:ss"/>
+	      <format property="today" pattern="yyyy-MM-dd hh:mm:ss"/>
+		  <format property="timestamp" pattern="yyMMddHHmm"/>
+	</tstamp>
+	<description>${prjDescription}</description>
+	<property environment="env"/>
+	<property file="build.properties" />
+	<property name="project.description"  value="${prjDescription}"/>
+	<property name="project.package"  value="com.redfire.*"/>
+	
+	<property name="author"  value="hama_zgd"/>
+	<property name="encoding" value="UTF-8" />						<!-- 字符集编码 --> 
+	<property name="javaVersion" value="1.6" />						<!-- 定义Java版本 -->		
+	<property name="project.name"  value="${prjName}"/>             <!--定义项目名称 -->
+	<property name="warName"  value="${prjName}"/>                     <!--定义war文件名称 -->
+	<property name="basesrc" location="${basedir}/src" />			<!-- 定义Java 项目源代码目录 -->
+	<property name="web" location="${basedir}/web" /> 
+	<property name="test" location="${basedir}/test" /><!-- 定义WEB目录 -->	
+	<property name="resource" location="${basedir}/resource" />		<!-- 定义配置文件目录 -->	
+	<property name="build.dir" value="${basedir}/build" />		    <!-- 定义编译的时候依赖的目录  -->
+	<property name="dist" location="${basedir}/dist" />	            <!-- 定义输出目录 -->	
+
+	<!--版本控制信息-->
+	<property name="version" value="1.0"></property>
+	<property name="version.message" value="version:${version} build:${time}"/>
+	<property name="version.file" value="version.txt"></property>
+	
+	<target name="generate_version">
+		<echo file="${version.file}" append="no" message="${version.message}"/>
+	</target>
+	
+	<path id="lib.classpath">
+		<!--编译依赖的类包
+		<fileset dir="${dist}/jar">
+			 <include name="**/*.jar"/>
+		</fileset>
+		<fileset dir="${build.dir}/lib">
+					 <include name="**/*.jar"/>
+		</fileset>
+		-->
+		<fileset dir="${web}/WEB-INF/lib">
+					 <include name="**/*.jar"/>
+		</fileset>
+	</path>
+	<path id="test.src">
+	  	<pathelement path="${basedir}/test"/>
+	</path>
+	<path id="app.src">
+		 <pathelement path="${basedir}/src/" />
+	</path>	
+	
+	
+	<!-- 显示编译环境信息 -->
+   <target name="echoInfo">
+	        <echo message="----------------ANT基本信息----------------"/>
+	        <echo message="编译时间：${today}" />
+	        <echo message="构建文件：${ant.file}"/>
+	        <echo message="Ant版本： ${ant.version}"/>
+	       	<echo message="Java版本：${ant.java.version}"/>
+        	<echo message="项目：  ${project.name}"/>
+	        <echo message="项目版本： ${version.message}"/>
+	</target>
+	<target name="clean" >
+	    	<echo message="---------------清理dict目录-------------"/>
+		    <delete dir="${dist}/classes"/>
+		    <delete dir="${dist}/doc"/>
+		    <delete dir="${dist}/jar"/>
+		    <delete dir="${dist}/test"/>
+		    <delete dir="${dist}/resource"/>
+		    <delete dir="${dist}/temp"/>
+	        <delete dir="${dist}/deploy"/>
+	</target>
+	    <!-- 编译的入口的前置target，指定要先执行build date -->
+	<target name="prepare" depends="echoInfo,clean">
+		    <delete dir="${dist}"/>
+			<echo message="--------------创建临时编译目录 ${dist}---------------"/>
+			<!-- 创建要编译的临时目录 -->
+	        <mkdir dir="${dist}"/>
+		    <echo message="--------------创建临时classes目录 ${dist}/classes/---------------"/>
+	        <mkdir dir="${dist}/classes/"/>
+	        <echo message="--------------创建临时api目录 ${dist}/doc---------------"/>
+	        <mkdir dir="${dist}/doc"/>
+		
+		    <echo message="--------------创建临时配置文件api目录---------------"/>
+	        <mkdir dir="${dist}/resource/"/>
+		
+		    <echo message="--------------创建临时测试目录---------------"/>
+		    <mkdir dir="${dist}/test/"/>
+		    <mkdir dir="${dist}/test/report/"/>
+		
+		    <echo message="--------------创建临时jar目录---------------"/>
+		    <mkdir dir="${dist}/jar/"/>
+	        <echo message="--------------创建发布目录---------------"/>
+			<mkdir dir="${dist}/deploy"/>
+		    <echo message="--------------准备工作完成---------------"/>
+	 </target>	 
+    <target name="prj_javadoc"  >
+			 <echo message="--------------创建应用程序API---------------"/>
+	  	     <mkdir dir="${dist}/"/>
+	  	     <mkdir dir="${dist}/doc/"/>
+			 <delete file="${dist}/${project.name}Api.zip"/>
+			 <delete dir="${dist}/doc/src/"/>
+			 <mkdir dir="${dist}/doc/src/"/>
+			 <javadoc   packagenames="${project.package}"
+				destdir="${dist}/doc/src/" windowtitle="${project.description}"
+				source="${javaVersion}" access="protected" author="true" version="true"  encoding="${encoding}"   private="false">
+				<doctitle><![CDATA[<h1>${project.descriptiont} API</h1>]]></doctitle>
+				<classpath>
+						<path refid="lib.classpath" />
+				</classpath>
+				<sourcepath refid="app.src"/>
+			 </javadoc>
+			 <echo message="------创建应用程序 JavaDoc压缩文档：${project.name}Api.zip---------"/>
+			 <zip destfile="${dist}/${project.name}Api.zip">
+					<fileset dir="${dist}/doc/src/">
+						<include name="**/*.*"/>
+					</fileset>
+			 </zip>
+    	     <delete dir="${dist}/doc/src/"/>
+	</target>
+
+	<target name="build_src">
+				<echo message="------------ 开始编译src--------------"/>
+	            <delete dir="${dist}/classes/src"/>
+	            <mkdir  dir="${dist}/classes/src"/>
+		 	    <delete  file="${dist}/jar/${project.name}*.jar" />
+				 <javac srcdir="${basedir}/src" destdir="${dist}/classes/src"
+					failonerror="true" verbose="false" 
+					includeAntRuntime="no" source="${javaVersion}"
+					target="${javaVersion}" deprecation="on"
+					debug="on" encoding="${encoding}">	
+					<classpath>
+						   <path refid="lib.classpath" />
+					</classpath>
+					<!-- 
+					<compilerarg value="-Xlint:unchecked -XX:PermSize=64M -XX:MaxPermSize=256m -Xms128m -Xmx512m"/>
+					 -->
+				  </javac>
+			     <echo message="------------ 复制app 非java配置文件--------------"/>
+			     <copy todir="${dist}/classes/src" encoding="${encoding}">
+						 <fileset dir="${basedir}/src" excludes="**/*.java"/>
+				 </copy>
+			     <echo message="------------ 创建 代码生成器  app.jar --------------"/>
+			     <jar jarfile="${dist}/jar/${project.name}.${version}.jar" 	manifestencoding="${encoding}" index="true">
+						<fileset dir="${dist}/classes/src">
+							<include name="META-INF/**"/>
+							<include name="**/*.*"/>
+						</fileset>
+				  </jar>
+		         <delete  file="${dist}/classes/src" />
+			     <echo message="------------ 结束编译src --------------"/>
+	</target>
+	<target name="build_test"  depends="build_src"  >
+				 <echo message="------------ 开始编译test --------------"/>
+		         <delete dir="${dist}/classes/test"/>
+		         <mkdir  dir="${dist}/classes/test"/>
+			 	 <delete  file="${dist}/jar/test.jar" />
+			 	 <delete  file="${dist}/test.jar" />
+				 <javac srcdir="${basedir}/test" destdir="${dist}/classes/test"
+					failonerror="true" verbose="false" 
+					includeAntRuntime="no" source="${javaVersion}"
+					target="${javaVersion}" deprecation="on"
+					debug="on" encoding="${encoding}">	
+					<classpath>
+						<path refid="lib.classpath" />
+						<path>
+						  <fileset dir="${dist}/jar/">
+							   <include name="**/*.jar"/>
+					  	  </fileset>
+						</path>
+					</classpath>
+					<!-- 
+					<compilerarg value="-Xlint:unchecked -XX:PermSize=64M -XX:MaxPermSize=256m -Xms128m -Xmx512m"/>
+					 -->
+				  </javac>
+			      <copy todir="${dist}/classes/test">
+						<fileset dir="${basedir}/test" excludes="**/*.java"/>
+				  </copy>
+			      <echo message="------------ 创建   test.jar --------------"/>
+			      <jar jarfile="${dist}/jar/test.jar" encoding="${encoding}" 	
+			      	   manifestencoding="${encoding}" index="true">
+						<fileset dir="${dist}/classes/test">
+							<include name="META-INF/**"/>
+							<include name="**/*.*"/>
+						</fileset>
+				  </jar>
+		          <delete  file="${dist}/classes/src" />
+	</target>
+	<target name="prj_war" depends="build_src">
+		<echo message="------------ 打包war  --------------"/>
+	    <delete dir="${dist}/resource"/>
+		<mkdir  dir="${dist}/resource"/>
+		<delete dir="${dist}/temp"/>
+		<mkdir dir="${dist}/temp"/>
+		<copy todir="${dist}/resource" encoding="${encoding}">
+		    <fileset dir="${resource}" excludes="**/*.java"/>
+		</copy>
+		
+		<delete file="${dist}/*.jar"/>	
+		<antcall target="build_src"/>	
+		<war destfile="${dist}/${warName}.war" webxml="${web}/WEB-INF/web.xml" encoding="${encoding}">
+			<classes dir="${dist}/resource"/>
+			<fileset dir="${web}" includes="**/*" >
+				<exclude name="WEB-INF/classes/**"/>
+				<exclude name="WEB-INF/classes/**/*.*"/>
+				<exclude name="WEB-INF/web.xml"/>
+				<exclude name="WEB-INF/logs/"/>
+				<exclude name="WEB-INF/logs/*.*"/>
+			</fileset>
+			<lib dir="${dist}/jar">
+				<include name="*.jar"/>
+			</lib>
+		 </war>
+	</target>   
+	<target name="prj_deploy">
+		<echo message="------------ 打包组件  --------------"/>
+		 <mkdir dir="${dist}/"/>
+		 <delete dir="${dist}/deploy/"/>
+		 <mkdir dir="${dist}/deploy/"/>
+		 <mkdir dir="${dist}/deploy/src"/>
+		 <mkdir dir="${dist}/deploy/test"/>
+		 <mkdir dir="${dist}/deploy/web"/>
+		 <delete file="${dist}/*-deploy.zip"/>
+		 <copy todir="${dist}/deploy/resource" encoding="${encoding}">
+		    <fileset dir="${resource}" excludes="**/*.java"/>
+		 </copy>
+		 <copy todir="${dist}/deploy/test" encoding="${encoding}">
+			<fileset dir="${test}" excludes="**/*.js"/>
+		 </copy>
+		 <copy todir="${dist}/deploy/web" encoding="${encoding}">
+			    <fileset dir="${web}" includes="**/*" >
+					<exclude name="WEB-INF/classes/**"/>
+					<exclude name="WEB-INF/classes/**/*.*"/>
+					<exclude name="WEB-INF/logs/"/>
+					<exclude name="WEB-INF/logs/*.*"/>
+				</fileset>
+		 </copy>	
+		 <zip zipfile="${dist}/${project.name}-${version}-deploy.zip" encoding="GBK">
+				<zipfileset dir="${dist}/deploy/" prefix="${project.name}-${version}">
+							<include name="**/*.*"/>		
+				</zipfileset>
+		  </zip>
+	</target>
+	<target name="prj_source" >
+		    <echo message="------------ 打包源文件   --------------"/>
+			<delete file="${dist}/*-source.zip"/>
+			<zip zipfile="${dist}/${project.name}-${version}-source.zip" encoding="GBK">
+				<zipfileset dir="." prefix="${project.name}-${version}">
+					<include name="src/**/*.*"/>
+					<include name="test/**/*.*"/>
+					<include name="web/**/*.*"/>
+					<include name="readme.txt"/>
+					<exclude name="web/WEB-INF/classes/**"/>
+					<exclude name="web/WEB-INF/classes/**/*.*"/>
+					<exclude name="web/WEB-INF/logs/"/>
+					<exclude name="web/WEB-INF/logs/*.*"/>
+				</zipfileset>
+			</zip>
+	</target>	
+    <target name="test-report">
+		<junitreport todir="${dist}/test/report">
+			<fileset dir="${dist}/test/report">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="frames" todir="${dist}/test/report"/>
+		</junitreport>  
+    </target>
+
+	<target name="test"  depends="build_test">
+		<delete dir="${dist}/test/report" failonerror="no"/>
+		<mkdir dir="${dist}/test/report"/>
+		<junit printsummary="yes" fork="yes" haltonfailure="yes" dir="${basedir}"  maxmemory="256M" >
+			
+			<classpath>
+				<path refid="lib.classpath"/>
+				<pathelement path="${dist}/classes/src/"/>
+				<pathelement path="${dist}/classes/test/"/>	
+			</classpath>
+				
+			<formatter type="plain"/>
+			<formatter type="xml"/>
+			<formatter type="brief"/>
+			
+			<batchtest todir="${dir}/test/report}" haltonfailure="no">
+				<fileset dir="${dist}/classes/test/">
+					<include name="**/*Test.class"/>
+				</fileset>
+			</batchtest>
+		</junit>
+		<antcall target="test-report"></antcall>
+	</target>
+	<target name="build-war" depends="prepare">
+			<!-- 创建.war包  -->
+			<antcall target="prj_war"/>		
+			<!-- 清除临时文件  
+			<antcall target="clean"/>
+		    -->
+			<echo message="编译成功完成！"/>
+	</target>
+    <!-- 编译的入口target，depends指定先要执行init这个target -->
+    <target name="build-all" depends="prepare">
+		<antcall target="prj_javadoc"/>
+    	<antcall target="build_test"/>	
+		<antcall target="prj_war"/>	
+    	<antcall target="prj_deploy"/>	
+    	
+        <antcall target="prj_source"/>	
+		<!-- 清除临时文件  -->
+		<antcall target="clean"/>
+		<echo message="编译成功完成！"/>
+    </target>
+</project>
